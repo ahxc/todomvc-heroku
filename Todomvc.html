@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>TodoMVC</title>
+    <link
+        rel="stylesheet"
+        type="text/css"
+        href="https://unpkg.com/todomvc-app-css@2.2.0/index.css"
+        />
+    <style>
+        [v-cloak] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div id="todo-app" class="todoapp">
+    <div class="header">
+        <h1>TodoMVC</h1>
+        <input
+            type="text"
+            class="new-todo"
+            placeholder="添加代办事项"
+            autofocus
+            autocomplete="off"
+            v-model="new_todo_title"
+            @keyup.enter="add_todo"/>
+    </div>
+    <section class="main" v-cloak>
+        <input
+            id="checkbox"
+            type="checkbox"
+            class="toggle-all"
+            v-model="all_mark_completed_status"/>
+
+        <ul class="todo-list">
+            <li class="todo" v-for="todo in filter_todos">
+                <div class="view">
+                    <input
+                        class="toggle"
+                        type="checkbox"
+                        v-model="todo.completed"/>
+                    <label
+                        :class="{completed: todo.completed}"
+                        @dblclick="edit_todo(todo)">
+                        {{ todo.title }}
+                    </label>
+                    <button
+                        class="destroy"
+                        @click="remove_todo(todo)">
+                    </button>
+                </div> 
+                <input
+                    type="text"
+                    class="edit"
+                    v-focus="true"
+                    v-if="unedited_todo && unedited_todo.id === todo.id"
+                    v-model="todo.title"
+                    @blur="edit_done(todo)"
+                    @keyup.enter="edit_done(todo)"
+                    @keyup.esc="cancel_edit(todo)"/>
+            </li>
+        </ul>
+    </section>
+    <footer
+        class="footer"
+        v-if="todo_list.length"
+        v-cloak>
+        <span class="todo-count">
+            {{ left_todos_count }} 项未完成</span>
+        <ul
+            v-if="todo_list.length"
+            class="filters">
+            <button
+                type="button"
+                class="selected"
+                @click="filter_status=2">
+                全部
+            </button>
+            <button
+                type="button"
+                @click="filter_status=0">
+                进行中
+            </button>
+            <button
+                type="button"
+                @click="filter_status=1">
+                已完成
+            </button>
+        </ul>
+        <button
+            v-if="todo_list.length > left_todos.length"
+            type="button"
+            @click="clear_completed"
+            class="clear-completed">
+            清除已完成
+        </button>
+    </footer>
+</div>
+<script
+    src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js">
+</script>
+<script>
+    let id = 0;
+    var app = new Vue({
+        el: "#todo-app",
+
+        data: {
+            todo_list: [],
+            new_todo_title: "",
+            unedited_todo: null,
+            filter_status: "2",
+            all_mark_completed_status: false,
+            },
+
+        methods: {
+            add_todo: function() {
+                var value = this.new_todo_title && 
+                    this.new_todo_title.trim();
+
+                if (!value) {
+                    // alert("！")
+                    return ;
+                }
+
+                this.todo_list.push(
+                {
+                    id: id++,
+                    title: this.new_todo_title,
+                    // checkbox会改变此状态，只需v-model绑定
+                    completed: false
+                });
+
+                this.new_todo_title = "";
+            },
+
+            remove_todo: function(todo) {
+                // id不同，重名todo不同
+                this.todo_list.splice(
+                    this.todo_list.indexOf(todo), 1)
+                if (this.todo_list.length == 0) {
+                    id = 0;
+                }
+            },
+
+            // 单纯的todo赋值会造成引用错误
+            // 重新开辟内存
+            edit_todo: function(todo) {
+                this.unedited_todo = {
+                    id: todo.id,
+                    title: todo.title,
+                    completed: todo.completed
+                }
+            },
+
+            edit_done: function(todo) {
+                if (!todo.title.trim()) {
+                    return this.remove_todo(todo);
+                }
+                this.unedited_todo = null
+            },
+
+            cancel_edit: function(todo) {
+                todo.title = this.unedited_todo.title;
+                this.unedited_todo = null
+            },
+
+            all_mark_completed: function() {
+                this.todo_list.map(
+                    // (参数,..) => {return}
+                    todo => {
+                        todo.completed = !(todo.completed)
+                    })
+            },
+
+            clear_completed: function() {
+                this.todo_list = this.todo_list.filter(
+                    todo => !todo.completed)
+            },
+        },
+
+        computed: {
+            left_todos: function() {
+                return this.todo_list.filter(
+                    todo => !todo.completed)
+            },
+
+            left_todos_count: function() {
+                return this.left_todos.length
+            },
+
+            filter_todos:function() {
+                if (this.filter_status === 0) {
+                    return this.left_todos
+                } else if (this.filter_status === 1) {
+                    return this.todo_list.filter(
+                        todo => todo.completed)
+                } else {
+                    return this.todo_list
+                }
+            }
+        },
+
+        directives: {
+            focus: {
+                inserted: function(el) {
+                    el.focus()
+                }
+            }
+        }
+    })
+</script>
+</body>
+</html>
