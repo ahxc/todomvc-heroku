@@ -110,16 +110,41 @@
     src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js">
 </script>
 <script>
+    var STORAGE_KEY = "hello,world";
+    var todoStorage = {
+        fetch: function() {
+            var todo_list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+            todo_list.forEach(function(todo, index) {
+                todo.id = index
+            });
+            todoStorage.uid = todo_list.length;
+            return todo_list
+        },
+        // 存取list序列化为json
+        save: function(todo_list) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(todo_list))
+        }
+    };
+
     let id = 0;
     var app = new Vue({
         el: "#todo-app",
 
         data: {
-            todo_list: [],
+            todo_list: todoStorage.fetch(),
             new_todo_title: "",
             unedited_todo: null,
             filter_status: "2",
             },
+
+        watch: {
+            todo_list: {
+                handler: function(todo_list) {
+                    todoStorage.save(todo_list)
+                },
+                deep: true
+            }
+        },
 
         methods: {
             add_todo: function() {
@@ -133,7 +158,7 @@
 
                 this.todo_list.push(
                 {
-                    id: id++,
+                    id: todoStorage.uid++,
                     title: this.new_todo_title,
                     // checkbox会改变此状态，只需v-model绑定
                     completed: false
