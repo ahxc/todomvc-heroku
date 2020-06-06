@@ -16,7 +16,7 @@
 </head>
 <body>
 <div id="todo-app" class="todoapp">
-    <div class="header">
+    <header class="header">
         <h1>TodoMVC</h1>
         <input
             type="text"
@@ -26,23 +26,28 @@
             autocomplete="off"
             v-model="new_todo_title"
             @keyup.enter="add_todo"/>
-    </div>
+    </header>
     <section class="main" v-cloak>
         <input
-            id="checkbox"
+            id="toggle-all"
             type="checkbox"
             class="toggle-all"
-            v-model="all_mark_completed_status"/>
-
+            v-model="all_completed_status"/>
+        <label for="toggle-all"></label>
         <ul class="todo-list">
-            <li class="todo" v-for="todo in filter_todos">
+            <li
+                class="todo"
+                v-for="todo in filter_todos"
+                :key="todo.id"
+                :class="{completed: todo.completed}">
+                <!-- todo的完成状态来决定completed样式-->
+
                 <div class="view">
                     <input
                         class="toggle"
                         type="checkbox"
                         v-model="todo.completed"/>
                     <label
-                        :class="{completed: todo.completed}"
                         @dblclick="edit_todo(todo)">
                         {{ todo.title }}
                     </label>
@@ -54,8 +59,6 @@
                 <input
                     type="text"
                     class="edit"
-                    v-focus="true"
-                    v-if="unedited_todo && unedited_todo.id === todo.id"
                     v-model="todo.title"
                     @blur="edit_done(todo)"
                     @keyup.enter="edit_done(todo)"
@@ -111,7 +114,6 @@
             new_todo_title: "",
             unedited_todo: null,
             filter_status: "2",
-            all_mark_completed_status: false,
             },
 
         methods: {
@@ -166,16 +168,9 @@
                 this.unedited_todo = null
             },
 
-            all_mark_completed: function() {
-                this.todo_list.map(
-                    // (参数,..) => {return}
-                    todo => {
-                        todo.completed = !(todo.completed)
-                    })
-            },
-
             clear_completed: function() {
                 this.todo_list = this.todo_list.filter(
+                    // (参数,..) => {return}
                     todo => !todo.completed)
             },
         },
@@ -198,6 +193,18 @@
                         todo => todo.completed)
                 } else {
                     return this.todo_list
+                }
+            },
+
+            // get获得all_completed_status的参数
+            // set设置参数
+            all_completed_status: {
+                get: function() {
+                    return this.left_todos.length === 0;
+                },
+                set: function(value) {
+                    this.todo_list.forEach(
+                        todo => todo.completed = value);
                 }
             }
         },
