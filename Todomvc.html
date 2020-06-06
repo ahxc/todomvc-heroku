@@ -12,6 +12,7 @@
         [v-cloak] {
             display: none;
         }
+        
     </style>
 </head>
 <body>
@@ -22,7 +23,7 @@
             type="text"
             class="new-todo"
             placeholder="添加代办事项"
-            autofocus
+            v-focus="true"
             autocomplete="off"
             v-model="new_todo_title"
             @keyup.enter="add_todo"/>
@@ -39,8 +40,10 @@
                 class="todo"
                 v-for="todo in filter_todos"
                 :key="todo.id"
-                :class="{completed: todo.completed}">
-                <!-- todo的完成状态来决定completed样式-->
+                :class="{completed: todo.completed, editing: unedited_todo && todo.id==unedited_todo.id}">
+                <!-- todo的完成状态来决定completed样式
+                    todo==unedited_todo不生效，采用id
+                    completed出了问题-->
 
                 <div class="view">
                     <input
@@ -55,10 +58,12 @@
                         class="destroy"
                         @click="remove_todo(todo)">
                     </button>
-                </div> 
+                </div>
                 <input
-                    type="text"
                     class="edit"
+                    type="text"
+                    v-focus="true"
+                    v-if="unedited_todo!==null && unedited_todo.id===todo.id"
                     v-model="todo.title"
                     @blur="edit_done(todo)"
                     @keyup.enter="edit_done(todo)"
