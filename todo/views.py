@@ -34,4 +34,4 @@ def RecvDataView(request):
                 completed = todo['completed'])
             t.save()
 
-    return HttpResponse(todos)
+        return HttpResponse(todos)    
