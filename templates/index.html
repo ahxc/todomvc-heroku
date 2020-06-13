@@ -114,32 +114,12 @@
     src="https://unpkg.com/axios/dist/axios.min.js">
 </script>
 <script>
-    /*
-    var STORAGE_KEY = "hello,world";
-    var todoStorage = {
-        // 取操作，反序列化
-        fetch: function() {
-            // localStorage本地存储对象，HTML5支持
-            var todo_list = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-            todo_list.forEach(function(todo, index) {
-                todo.id = index
-            });
-            //uid添加新的todo在此基础+1
-            todoStorage.uid = todo_list.length;
-            return todo_list
-        },
-        // 存取list序列化为json
-        save: function(todo_list) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(todo_list))
-        }
-    };
-    */
 
     var todoStorage = {
         post_list: function(todos) {
             axios
             .post(
-                'http://192.168.43.51/api/RecvTodos/',
+                'https://todomvc-heroku.herokuapp.com/api/RecvTodos/',
                 JSON.stringify(todos))
             .then(response => {
                 console.log(response);
@@ -147,17 +127,11 @@
         },
     };
 
-
-    /*
-    let id = 0;
-    var todo_list = {{ todo_list | safe }};
-    */
     var app = new Vue({
         el: "#todo-app",
 
         data: {
-            // todo_list: todoStorage.fetch(),
-            todo_list: [],//todoStorage.get_list(),
+            todo_list: [],
             new_todo_title: "",
             unedited_todo: null,
             filter_status: "2",
@@ -166,16 +140,14 @@
         watch: {
             todo_list: {
                 handler: function(todo_list) {
-                    // todoStorage.save(todo_list)
                     todoStorage.post_list(todo_list)
                 },
                 deep: true
             }
         },
-        // 位置问题
         mounted() {
             axios
-            .get('http://192.168.43.51/api/index/')
+            .get('https://todomvc-heroku.herokuapp.com/api/index/')
             .then(response => {
                 this.todo_list = response.data
                 this.todo_list.forEach(
@@ -189,7 +161,7 @@
                 var value = this.new_todo_title.trim();
 
                 if (!value) {
-                    // alert("！")
+
                     return ;
                 }
 
@@ -197,7 +169,7 @@
                 {
                     id: todoStorage.uid++,
                     title: this.new_todo_title,
-                    // checkbox会改变此状态，只需v-model绑定
+
                     completed: false
                 });
 
@@ -205,7 +177,7 @@
             },
 
             remove_todo: function(todo) {
-                // id不同，重名todo不同
+
                 this.todo_list.splice(
                     this.todo_list.indexOf(todo), 1)
                 if (this.todo_list.length == 0) {
@@ -213,8 +185,7 @@
                 }
             },
 
-            // 单纯的todo赋值会造成引用错误
-            // 重新开辟内存
+
             edit_todo: function(todo) {
                 this.unedited_todo = {
                     id: todo.id,
@@ -237,7 +208,7 @@
 
             clear_completed: function() {
                 this.todo_list = this.todo_list.filter(
-                    // (参数,..) => {return}
+
                     todo => !todo.completed)
             },
         },
@@ -263,8 +234,6 @@
                 }
             },
 
-            // get获得all_completed_status的参数
-            // set设置参数
             all_completed_status: {
                 get: function() {
                     return this.left_todos.length === 0;
