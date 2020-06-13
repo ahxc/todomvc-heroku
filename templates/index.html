@@ -41,9 +41,6 @@
                 v-for="todo in filter_todos"
                 :key="todo.id"
                 :class="{completed: todo.completed, editing: unedited_todo && todo.id==unedited_todo.id}">
-                <!-- todo的完成状态来决定completed样式
-                    todo==unedited_todo不生效，采用id，
-                    completed出了问题-->
                 <div class="view">
                     <input
                         class="toggle"
@@ -74,7 +71,6 @@
         class="footer"
         v-if="todo_list.length"
         v-cloak>
-        <!-- js变量与django模板标签冲突，禁用django模板标签 -->
         <span class="todo-count">
             {% verbatim %}{{ left_todos_count }}{% endverbatim %} 项未完成
         </span>
