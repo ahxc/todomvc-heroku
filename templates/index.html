@@ -136,12 +136,12 @@
     */
 
     var todoStorage = {
-        post_list: function(todo_list) {
+        post_list: function(todos) {
             axios
             .post(
                 'http://192.168.43.51/api/RecvTodos/',
-                JSON.stringify(todo_list))
-            .then(function(response) {
+                JSON.stringify(todos))
+            .then(response => {
                 console.log(response);
             })
         },
@@ -156,12 +156,22 @@
 
         data: {
             // todo_list: todoStorage.fetch(),
-            todo_list: [],
+            todo_list: [],//todoStorage.get_list(),
             new_todo_title: "",
             unedited_todo: null,
             filter_status: "2",
             },
 
+        watch: {
+            todo_list: {
+                handler: function(todo_list) {
+                    // todoStorage.save(todo_list)
+                    todoStorage.post_list(todo_list)
+                },
+                deep: true
+            }
+        },
+        // 位置问题
         mounted() {
             axios
             .get('http://192.168.43.51/api/index/')
@@ -216,12 +226,12 @@
                 if (!todo.title.trim()) {
                     return this.remove_todo(todo);
                 }
-                this.unedited_todo = null
+                this.unedited_todo = null;
             },
 
             cancel_edit: function(todo) {
                 todo.title = this.unedited_todo.title;
-                this.unedited_todo = null
+                this.unedited_todo = null;
             },
 
             clear_completed: function() {
@@ -262,17 +272,7 @@
                     this.todo_list.forEach(
                         todo => todo.completed = value);
                 }
-            }
-        },
-
-        watch: {
-            todo_list: {
-                handler: function(todo_list) {
-                    // todoStorage.save(todo_list)
-                    todoStorage.post_list(this.todo_list)
-                },
-                deep: true
-            }
+            },
         },
 
         directives: {
