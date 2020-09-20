@@ -6,8 +6,7 @@
     <link
         rel="stylesheet"
         type="text/css"
-        href="https://unpkg.com/todomvc-app-css@2.2.0/index.css"
-        />
+        href="https://unpkg.com/todomvc-app-css@2.2.0/index.css"/>
     <style>
         [v-cloak] {
             display: none;
@@ -19,6 +18,8 @@
 <div id="todo-app" class="todoapp">
     <header class="header">
         <h1>TodoMVC</h1>
+        <!-- 双向绑定v-model，通过checkbox的状态改变v-model的值 -->
+        <!-- autocomplete自动完成允许浏览器预测对字段的输入。当用户在字段开始键入时，浏览器基于之前键入过的值，应该显示出在字段中填写的选项。 -->
         <input
             type="text"
             class="new-todo"
@@ -36,16 +37,20 @@
             v-model="all_completed_status"/>
         <label for="toggle-all"></label>
         <ul class="todo-list">
+            <!-- :key：v节点唯一标识符，如果使用了key，Vue会根据keys的顺序记录element -->
+            <!-- 不使用key，Vue会用一种算法：最小化element的移动，并且会尝试最大程度对同适当的相同类型的element做patch或者reuse -->
+            <!-- :class：类样式的动态切换 -->
             <li
                 class="todo"
                 v-for="todo in filter_todos"
                 :key="todo.id"
-                :class="{completed: todo.completed, editing: unedited_todo && todo.id==unedited_todo.id}">
+                :class="{completed: todo.completed, editing: unedited_todo && todo.id==unedited_todo.id}"><!-- 根据键值确定键对应的类是否显示样式-->
                 <div class="view">
                     <input
                         class="toggle"
                         type="checkbox"
                         v-model="todo.completed"/>
+                    <!-- vue变量 -->
                     <label
                         @dblclick="edit_todo(todo)">
                         {% verbatim %}{{ todo.title }}{% endverbatim %}
@@ -55,6 +60,8 @@
                         @click="remove_todo(todo)">
                     </button>
                 </div>
+                <!-- v-if条件成立才显现，未完成等于list长度只有list为空的情况 -->
+                <!-- @blur：失去焦点事件 -->
                 <input
                     class="edit"
                     type="text"
@@ -110,12 +117,13 @@
     src="https://unpkg.com/axios/dist/axios.min.js">
 </script>
 <script>
-
+    // 每个 Vue 应用都需要通过实例化Vue来实现
     var todoStorage = {
         post_list: function(todos) {
             axios
             .post(
                 'https://todomvc-heroku.herokuapp.com/api/RecvTodos/',
+                // json化，(value, [函数或null, 缩进])
                 JSON.stringify(todos))
             .then(response => {
                 console.log(response);
@@ -124,6 +132,7 @@
     };
 
     var app = new Vue({
+        // #表示id，作用域，可供css选择器
         el: "#todo-app",
 
         data: {
@@ -133,34 +142,43 @@
             filter_status: "2",
             },
 
+        // watch监视指定变量
         watch: {
             todo_list: {
+                // watch中要执行的方法
                 handler: function(todo_list) {
                     todoStorage.post_list(todo_list)
                 },
+                // 监听的深度
                 deep: true
             }
         },
+
+        // vue实例挂载后就调用
         mounted() {
+            // get值作为参数输入then
             axios
             .get('https://todomvc-heroku.herokuapp.com/api/index/')
             .then(response => {
+                // this为vue内部的全局变量
                 this.todo_list = response.data
                 this.todo_list.forEach(
                     (todo, index) => {todo.id=index})
+                // 组件的id
                 todoStorage.uid = this.todo_list.length
             })
         },
 
         methods: {
             add_todo: function() {
+                // 去首末空格
                 var value = this.new_todo_title.trim();
 
                 if (!value) {
-
                     return ;
                 }
-
+                
+                // 给list末尾添加一个元素，返回新长度
                 this.todo_list.push(
                 {
                     id: todoStorage.uid++,
@@ -172,16 +190,15 @@
                 this.new_todo_title = "";
             },
 
+            // splice：用z替换列表中起始位置x，长度y的元素 (x, y, z)
+            // indexOf：返回元素当前索引
             remove_todo: function(todo) {
-
                 this.todo_list.splice(
                     this.todo_list.indexOf(todo), 1)
-                if (this.todo_list.length == 0) {
-                    todo_list_length = 0;
                 }
             },
 
-
+            // 事先保存原有信息
             edit_todo: function(todo) {
                 this.unedited_todo = {
                     id: todo.id,
@@ -204,12 +221,13 @@
 
             clear_completed: function() {
                 this.todo_list = this.todo_list.filter(
-
                     todo => !todo.completed)
             },
         },
 
+        // 与method不同的是，computed依赖于缓存，适合频繁计算的操作
         computed: {
+            // 未完成todo
             left_todos: function() {
                 return this.todo_list.filter(
                     todo => !todo.completed)
@@ -231,9 +249,16 @@
             },
 
             all_completed_status: {
+                // getter好比默认函数的return，返回实例的值
+                // 而setter是在实例调用变化时把新值传入setter并执行
                 get: function() {
+                    // 随时监听，left_todos.length的改变都会经过get
+                    // v-model与checkbox双向绑定，任何一方改变都互相影响
+                    // 因此满足条件all_completed_status对应的checkbox就会高亮
+                    // 但是不在改变checkbox的值而通过满足条件而改变的all_completed_status不响应实例调用事件，因此set不会调用。
                     return this.left_todos.length === 0;
                 },
+                // 
                 set: function(value) {
                     this.todo_list.forEach(
                         todo => todo.completed = value);
@@ -241,8 +266,10 @@
             },
         },
 
+        // 自定义局部指令，vue.directive全局指令
         directives: {
             focus: {
+                // inserted钩子函数，自定义指令插入到标签中的时候就执行，v-focus
                 inserted: function(el) {
                     el.focus()
                 }
