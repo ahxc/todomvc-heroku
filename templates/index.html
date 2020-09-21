@@ -110,14 +110,10 @@
         </button>
     </footer>
 </div>
-<script
-    src="../staticfiles/vue-build.js">
-</script>
-<script
-    src="https://unpkg.com/axios/dist/axios.min.js">
-</script>
+<script src="{% static js/vue-build.js%}"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
-    // 每个 Vue 应用都需要通过实例化Vue来实现
+    // 每个Vue应用都需要通过实例化Vue来实现
     var todoStorage = {
         post_list: function(todos) {
             axios
