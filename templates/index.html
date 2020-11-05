@@ -18,8 +18,8 @@
 <div id="todo-app" class="todoapp">
     <header class="header">
         <h1>TodoMVC</h1>
-        <!-- 双向绑定v-model，通过checkbox的状态改变v-model的值 -->
         <!-- autocomplete自动完成允许浏览器预测对字段的输入。当用户在字段开始键入时，浏览器基于之前键入过的值，应该显示出在字段中填写的选项。 -->
+        <!-- v-on语法糖：@ -->
         <input
             type="text"
             class="new-todo"
@@ -30,6 +30,7 @@
             @keyup.enter="add_todo"/>
     </header>
     <section class="main" v-cloak>
+        <!-- 双向绑定v-model，通过checkbox的状态改变v-model的值 -->
         <input
             id="toggle-all"
             type="checkbox"
@@ -37,9 +38,9 @@
             v-model="all_completed_status"/>
         <label for="toggle-all"></label>
         <ul class="todo-list">
-            <!-- :key：v节点唯一标识符，如果使用了key，Vue会根据keys的顺序记录element -->
+            <!-- :key：v节点唯一标识符，如果使用了key，Vue会根据keys的顺序记录element，则渲染时元素位置相互独立 -->
             <!-- 不使用key，Vue会用一种算法：最小化element的移动，并且会尝试最大程度对同适当的相同类型的element做patch或者reuse -->
-            <!-- :class：类样式的动态切换 -->
+            <!-- :class：类样式的动态绑定切换，v-bind:class：语法糖 -->
             <li
                 class="todo"
                 v-for="todo in filter_todos"
@@ -60,8 +61,9 @@
                         @click="remove_todo(todo)">
                     </button>
                 </div>
-                <!-- v-if条件成立才显现，未完成等于list长度只有list为空的情况 -->
+                <!-- v-else-if -->
                 <!-- @blur：失去焦点事件 -->
+                <!-- 如果v-model.lazy，则只有在回车后tilte才会更新，否则是实时更新 -->
                 <input
                     class="edit"
                     type="text"
@@ -76,13 +78,13 @@
     </section>
     <footer
         class="footer"
-        v-if="todo_list.length"
+        v-show="todo_list.length"
         v-cloak>
         <span class="todo-count">
             {% verbatim %}{{ left_todos_count }}{% endverbatim %} 项未完成
         </span>
         <ul
-            v-if="todo_list.length"
+            v-show="todo_list.length"
             class="filters">
             <button
                 type="button"
@@ -101,6 +103,7 @@
                 已完成
             </button>
         </ul>
+        <!-- 只有>、=未完成的todo两种情况 -->
         <button
             v-if="todo_list.length > left_todos.length"
             type="button"
@@ -215,12 +218,14 @@
             },
 
             clear_completed: function() {
+                // 函数式编程，list方法filter
                 this.todo_list = this.todo_list.filter(
                     todo => !todo.completed)
             },
         },
 
         // 与method不同的是，computed依赖于缓存，适合频繁计算的操作
+        // 与watched不同的是，watched监听数据发生变化后执行一些方法，computed则是依赖的计算属性的缓存变化后进行一些方法
         computed: {
             // 未完成todo
             left_todos: function() {
@@ -244,16 +249,12 @@
             },
 
             all_completed_status: {
-                // getter好比默认函数的return，返回实例的值
-                // 而setter是在实例调用变化时把新值传入setter并执行
+                // get设立一个初始值，并监听该值且响应式的，该值的计算过程变化不会调用set方法，
+                // 但直接对该值的操作变化会调用set并把该值作为参数传入set
                 get: function() {
-                    // 随时监听，left_todos.length的改变都会经过get
-                    // v-model与checkbox双向绑定，任何一方改变都互相影响
-                    // 因此满足条件all_completed_status对应的checkbox就会高亮
-                    // 但是不在改变checkbox的值而通过满足条件而改变的all_completed_status不响应实例调用事件，因此set不会调用。
+                	if (this.todo_list.length === 0 ) {return false}
                     return this.left_todos.length === 0;
                 },
-                // 
                 set: function(value) {
                     this.todo_list.forEach(
                         todo => todo.completed = value);
